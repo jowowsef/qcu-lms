@@ -30,7 +30,7 @@ function TeacherLayout({ children }) {
         </div>
 
 
-        <main className="min-h-0 flex-1 overflow-y-scroll">
+        <main className="min-h-0 flex-1 overflow-y-scroll overscroll-contain">
 
           {children}
 

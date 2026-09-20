@@ -21,7 +21,7 @@ function AdminLayout({ children }) {
           <Navbar onMenuClick={() => setSidebarOpen(true)} />
         </div>
 
-        <main className="min-h-0 flex-1 overflow-y-auto [scrollbar-gutter:stable]">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]">
           {children}
         </main>
       </div>
