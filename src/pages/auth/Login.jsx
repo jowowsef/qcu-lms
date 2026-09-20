@@ -4,6 +4,7 @@ import { MailIcon, PhoneIcon, IdCardIcon, LifeBuoyIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 
 import {
@@ -24,6 +25,7 @@ import qcuLogo from "@/assets/qcu-logo.png"
 function Login() {
   const [idNumber, setIdNumber] = useState("")
   const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const [formError, setFormError] = useState("")
   const [showForgotPassword, setShowForgotPassword] = useState(false)
 
@@ -216,19 +218,9 @@ function Login() {
 
                       {/* Password */}
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="password">
-                            Password
-                          </Label>
-
-                          <button
-                            type="button"
-                            onClick={() => setShowForgotPassword(true)}
-                            className="text-xs font-medium text-blue-700 hover:text-blue-900"
-                          >
-                            Forgot password?
-                          </button>
-                        </div>
+                        <Label htmlFor="password">
+                          Password
+                        </Label>
 
                         <Input
                           id="password"
@@ -242,6 +234,28 @@ function Login() {
                           className="h-11"
                           required
                         />
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id="remember-me"
+                              checked={rememberMe}
+                              onCheckedChange={(checked) => setRememberMe(checked === true)}
+                            />
+
+                            <Label htmlFor="remember-me" className="text-xs font-medium text-gray-600">
+                              Remember me
+                            </Label>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setShowForgotPassword(true)}
+                            className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                          >
+                            Forgot password?
+                          </button>
+                        </div>
                       </div>
 
                       {formError && (
