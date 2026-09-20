@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { ChevronDownIcon, Trash2Icon } from "lucide-react"
+import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react"
 
 import { getCurrentAccount } from "@/lib/accountStorage"
 
@@ -23,6 +23,7 @@ import ClassworkCard from "@/pages/teacher/class/classwork/ClassworkCard"
 import ClassworkDetail from "@/pages/teacher/class/classwork/ClassworkDetail"
 import ClassworkPanel from "@/components/classwork/ClassworkPanel"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
 import {
   Select,
@@ -31,6 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import { useConfirm } from "@/components/ui/confirm-dialog"
 import { useToast } from "@/components/ui/toast"
@@ -82,7 +90,6 @@ function Classwork({
 }) {
   const [classwork, setClasswork] = useState([])
   const [topics, setTopics] = useState([])
-  const [showCreateMenu, setShowCreateMenu] = useState(false)
   const [showAddTopic, setShowAddTopic] = useState(false)
   const [newTopicName, setNewTopicName] = useState("")
   const [topicFilter, setTopicFilter] = useState("all")
@@ -122,7 +129,6 @@ function Classwork({
   }, [openItem])
 
   function handleOpenForm(type) {
-    setShowCreateMenu(false)
     setEditingItem(null)
     setActiveForm(type)
   }
@@ -302,7 +308,7 @@ function Classwork({
     <div className="mt-6 space-y-6">
       {/* Classwork Header */}
 
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold text-blue-950">
@@ -321,32 +327,33 @@ function Classwork({
           </p>
         </div>
 
-        <div className="flex items-start gap-2">
-          <button
+        <div className="flex items-center gap-2">
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setShowAddTopic((current) => !current)}
-            className="rounded-lg border px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+            className="whitespace-nowrap"
           >
-            + Add topic
-          </button>
+            <PlusIcon className="h-4 w-4" />
+            Add topic
+          </Button>
 
-          <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowCreateMenu((current) => !current)}
-            className="rounded-lg bg-blue-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800"
-          >
-            Create
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                className="whitespace-nowrap bg-blue-900 hover:bg-blue-800"
+              >
+                Create
+              </Button>
+            </DropdownMenuTrigger>
 
-          {showCreateMenu && (
-            <div className="absolute right-0 z-20 mt-2 w-52 overflow-hidden rounded-lg border border-gray-200 bg-white py-1.5 shadow-lg">
+            <DropdownMenuContent align="end" className="w-52">
               {CREATE_OPTIONS.map((option) => (
-                <button
+                <DropdownMenuItem
                   key={option.type}
-                  type="button"
                   onClick={() => handleOpenForm(option.type)}
-                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-900"
+                  className="px-2.5 py-2"
                 >
                   <svg
                     viewBox="0 0 24 24"
@@ -358,11 +365,10 @@ function Classwork({
                     {option.icon}
                   </svg>
                   {option.type}
-                </button>
+                </DropdownMenuItem>
               ))}
-            </div>
-          )}
-          </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -371,34 +377,34 @@ function Classwork({
           onSubmit={handleAddTopic}
           className="flex flex-col gap-3 rounded-xl border bg-white p-4 sm:flex-row sm:items-center"
         >
-          <input
+          <Input
             type="text"
             value={newTopicName}
             onChange={(event) => setNewTopicName(event.target.value)}
             placeholder="e.g. Week 1"
             autoFocus
-            className="flex-1 rounded-lg border px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="flex-1"
           />
 
           <div className="flex justify-end gap-2">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={() => {
                 setShowAddTopic(false)
                 setNewTopicName("")
               }}
-              className="rounded-lg border px-4 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50"
             >
               Cancel
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="submit"
               disabled={!newTopicName.trim()}
-              className="rounded-lg bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-blue-900 hover:bg-blue-800"
             >
               Save
-            </button>
+            </Button>
           </div>
         </form>
       )}
