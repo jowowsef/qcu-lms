@@ -13,7 +13,7 @@ function AdminLayout({ children }) {
   }, [location.pathname])
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F4F7FB]">
+    <div className="flex h-dvh overflow-hidden bg-[#F4F7FB]">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
