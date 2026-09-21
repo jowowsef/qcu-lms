@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { MailIcon, PhoneIcon, IdCardIcon, LifeBuoyIcon } from "lucide-react"
+import { MailIcon, PhoneIcon, IdCardIcon, LifeBuoyIcon, EyeIcon, EyeOffIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -28,6 +28,7 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false)
   const [formError, setFormError] = useState("")
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const navigate = useNavigate()
 
@@ -222,18 +223,34 @@ function Login() {
                           Password
                         </Label>
 
-                        <Input
-                          id="password"
-                          type="password"
-                          value={password}
-                          onChange={(e) => {
-                            setPassword(e.target.value)
-                            setFormError("")
-                          }}
-                          placeholder="Enter your password"
-                          className="h-11"
-                          required
-                        />
+                        <div className="relative">
+                          <Input
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(e) => {
+                              setPassword(e.target.value)
+                              setFormError("")
+                            }}
+                            placeholder="Enter your password"
+                            className="h-11 pr-10"
+                            required
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((current) => !current)}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            aria-pressed={showPassword}
+                            className="absolute right-0 top-0 flex h-11 w-10 items-center justify-center text-gray-400 transition hover:text-gray-600"
+                          >
+                            {showPassword ? (
+                              <EyeOffIcon className="h-4 w-4" />
+                            ) : (
+                              <EyeIcon className="h-4 w-4" />
+                            )}
+                          </button>
+                        </div>
 
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

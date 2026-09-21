@@ -156,6 +156,7 @@ function ClassPage() {
       return (
         <People
           classData={classData}
+          role="teacher"
         />
       )
     }

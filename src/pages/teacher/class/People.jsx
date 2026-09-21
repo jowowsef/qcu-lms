@@ -1,14 +1,40 @@
+import { useEffect, useState } from "react"
+import { UserPlusIcon } from "lucide-react"
+
 import { copyToClipboard } from "@/lib/clipboard"
 import { useToast } from "@/components/ui/toast"
 import { getAccountById } from "@/lib/accountStorage"
+import { updateClass } from "@/lib/classStorage"
 import UserAvatar from "@/components/UserAvatar"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 
-function People({ classData }) {
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
+
+function People({ classData, role = "student" }) {
   const toast = useToast()
+  const canManage = role === "teacher"
 
   const students = classData.students || []
-  const pendingEmails = classData.invitedEmails || []
   const teacherAccount = getAccountById(classData.teacherId)
+
+  const [pendingEmails, setPendingEmails] = useState(
+    classData.invitedEmails || []
+  )
+
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [emailInput, setEmailInput] = useState("")
+
+  useEffect(() => {
+    setPendingEmails(classData.invitedEmails || [])
+  }, [classData.id, classData.invitedEmails])
 
   async function handleCopyCode() {
     const success = await copyToClipboard(classData.classCode)
@@ -18,6 +44,37 @@ function People({ classData }) {
     } else {
       toast.error("Couldn't copy the class code.")
     }
+  }
+
+  function handleDialogChange(open) {
+    setShowInviteDialog(open)
+
+    if (!open) {
+      setEmailInput("")
+    }
+  }
+
+  function handleSendInvites(e) {
+    e.preventDefault()
+
+    const emails = emailInput
+      .split(/[,\n]/)
+      .map((email) => email.trim())
+      .filter((email) => email.length > 0)
+
+    if (emails.length === 0) {
+      toast.error("Enter at least one email address.")
+      return
+    }
+
+    const uniqueEmails = [...new Set([...pendingEmails, ...emails])]
+
+    updateClass(classData.id, { invitedEmails: uniqueEmails })
+
+    setPendingEmails(uniqueEmails)
+    handleDialogChange(false)
+
+    toast.success("Invitations sent.")
   }
 
   return (
@@ -79,7 +136,7 @@ function People({ classData }) {
 
       <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
 
-        <div className="flex items-center justify-between border-b bg-gray-50 px-6 py-4">
+        <div className="flex flex-col gap-3 border-b bg-gray-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
 
@@ -93,17 +150,35 @@ function People({ classData }) {
 
           </div>
 
-          <button
-            type="button"
-            onClick={handleCopyCode}
-            title="Tap to copy"
-            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-left transition hover:border-blue-300 hover:bg-blue-50"
-          >
-            <p className="text-[11px] text-gray-400">Class Code</p>
-            <p className="text-sm font-bold tracking-wider text-blue-900">
-              {classData.classCode}
-            </p>
-          </button>
+          <div className="flex items-center gap-2">
+
+            {!canManage && (
+              <button
+                type="button"
+                onClick={handleCopyCode}
+                title="Tap to copy"
+                className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-left transition hover:border-blue-300 hover:bg-blue-50"
+              >
+                <p className="text-[11px] text-gray-400">Class Code</p>
+                <p className="text-sm font-bold tracking-wider text-blue-900">
+                  {classData.classCode}
+                </p>
+              </button>
+            )}
+
+            {canManage && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowInviteDialog(true)}
+                className="whitespace-nowrap"
+              >
+                <UserPlusIcon className="h-4 w-4" />
+                Invite by email
+              </Button>
+            )}
+
+          </div>
 
         </div>
 
@@ -186,6 +261,57 @@ function People({ classData }) {
           </div>
 
         </div>
+
+      )}
+
+
+      {canManage && (
+
+        <Dialog open={showInviteDialog} onOpenChange={handleDialogChange}>
+          <DialogContent>
+
+            <DialogHeader>
+              <DialogTitle>Invite students by email</DialogTitle>
+
+              <DialogDescription>
+                Enter one email per line, or separate them with commas.
+                Invited students appear under Pending Invitations until
+                they join with the class code.
+              </DialogDescription>
+            </DialogHeader>
+
+            <form onSubmit={handleSendInvites} className="mt-2 space-y-5">
+
+              <Textarea
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="student1@email.com, student2@email.com"
+                rows={4}
+                autoFocus
+                className="resize-none"
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleDialogChange(false)}
+                >
+                  Cancel
+                </Button>
+
+                <Button
+                  type="submit"
+                  className="bg-blue-900 hover:bg-blue-800"
+                >
+                  Send invitations
+                </Button>
+              </DialogFooter>
+
+            </form>
+
+          </DialogContent>
+        </Dialog>
 
       )}
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { PencilIcon } from "lucide-react"
 
 import TeacherLayout from "@/components/TeacherLayout"
 
@@ -16,6 +17,16 @@ import {
 import { useToast } from "@/components/ui/toast"
 import { copyToClipboard } from "@/lib/clipboard"
 import ClassworkPanel from "@/components/classwork/ClassworkPanel"
+import { Button } from "@/components/ui/button"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 import {
   CLASS_BANNER_COLORS,
@@ -54,12 +65,6 @@ function Classes() {
 
   const [createdClass, setCreatedClass] =
     useState(null)
-
-  const [emailInput, setEmailInput] =
-    useState("")
-
-  const [invitedEmails, setInvitedEmails] =
-    useState([])
 
 
   useEffect(() => {
@@ -217,67 +222,21 @@ function Classes() {
   }
 
 
-  function handleInviteStudents() {
-    if (!createdClass) {
-      return
-    }
-
-    const emails =
-      emailInput
-        .split(",")
-        .map((email) =>
-          email.trim()
-        )
-        .filter(
-          (email) =>
-            email.length > 0
-        )
-
-    if (emails.length === 0) {
-      toast.error(
-        "Please enter at least one email address."
-      )
-
-      return
-    }
-
-    const uniqueEmails =
-      [
-        ...new Set([
-          ...invitedEmails,
-          ...emails,
-        ]),
-      ]
-
-    updateClass(
-      createdClass.id,
-      {
-        invitedEmails:
-          uniqueEmails,
-      }
-    )
-
-    setInvitedEmails(
-      uniqueEmails
-    )
-
-    setCreatedClass({
-      ...createdClass,
-      invitedEmails:
-        uniqueEmails,
-    })
-
-    setEmailInput("")
-
-    toast.success(
-      "Student invitations have been added."
+  function handleOpenClass(classItem) {
+    navigate(
+      `/teacher/classes/${classItem.id}`
     )
   }
 
 
-  function handleOpenClass(classItem) {
+  function handleGoToPeopleTab() {
+    if (!createdClass) {
+      return
+    }
+
     navigate(
-      `/teacher/classes/${classItem.id}`
+      `/teacher/classes/${createdClass.id}`,
+      { state: { tab: "People" } }
     )
   }
 
@@ -550,126 +509,68 @@ function Classes() {
         )}
 
 
-        {/* Created Class Invitation */}
+        {/* Class Created */}
 
-        {createdClass && (
+        <Dialog
+          open={Boolean(createdClass)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCreatedClass(null)
+            }
+          }}
+        >
+          <DialogContent>
 
-          <div className="mb-7 overflow-hidden rounded-xl border border-blue-200 bg-blue-50 shadow-sm">
+            <DialogHeader>
+              <DialogTitle>Class created</DialogTitle>
 
-            <div className="p-6">
+              <DialogDescription>
+                {createdClass?.className} is ready. Share the class code
+                below, or invite students by email from the People tab.
+              </DialogDescription>
+            </DialogHeader>
 
-              <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
+            {createdClass && (
 
-                <div>
+              <button
+                type="button"
+                onClick={() => handleCopyCode(createdClass.classCode)}
+                title="Tap to copy"
+                className="mt-2 w-full rounded-lg border border-gray-200 bg-gray-50 px-5 py-4 text-left transition hover:border-blue-300 hover:bg-blue-50"
+              >
 
-                  <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-                    Class Created
-                  </p>
-
-                  <h2 className="mt-1 text-lg font-bold text-blue-950">
-                    {createdClass.className}
-                  </h2>
-
-                  <p className="mt-1 text-sm text-blue-800">
-                    {createdClass.subject} • {createdClass.section}
-                  </p>
-
-                </div>
-
-
-                <button
-                  type="button"
-                  onClick={() => handleCopyCode(createdClass.classCode)}
-                  title="Tap to copy"
-                  className="rounded-lg border border-blue-200 bg-white px-5 py-3 text-left transition hover:border-blue-400 hover:bg-blue-50"
-                >
-
-                  <p className="text-xs font-medium text-gray-500">
-                    Class Code <span className="text-gray-400">(tap to copy)</span>
-                  </p>
-
-                  <p className="mt-1 text-xl font-bold tracking-[0.2em] text-blue-900">
-                    {createdClass.classCode}
-                  </p>
-
-                </button>
-
-              </div>
-
-
-              <div className="mt-6 border-t border-blue-200 pt-5">
-
-                <p className="text-sm font-semibold text-blue-950">
-                  Invite Students by Email
+                <p className="text-xs font-medium text-gray-500">
+                  Class code <span className="text-gray-400">(tap to copy)</span>
                 </p>
 
-                <p className="mt-1 text-xs text-blue-700">
-                  Enter one or more email addresses separated by commas.
+                <p className="mt-1 text-2xl font-bold tracking-[0.2em] text-blue-900">
+                  {createdClass.classCode}
                 </p>
 
+              </button>
 
-                <div className="mt-3 flex flex-col gap-3 md:flex-row">
+            )}
 
-                  <input
-                    value={emailInput}
-                    onChange={(e) =>
-                      setEmailInput(
-                        e.target.value
-                      )
-                    }
-                    placeholder="student1@email.com, student2@email.com"
-                    className="h-10 flex-1 rounded-md border border-blue-200 bg-white px-3 text-sm outline-none focus:border-blue-700 focus:ring-2 focus:ring-blue-700/20"
-                  />
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setCreatedClass(null)}
+              >
+                Done
+              </Button>
 
-                  <button
-                    type="button"
-                    onClick={
-                      handleInviteStudents
-                    }
-                    className="h-10 rounded-md bg-blue-900 px-5 text-sm font-semibold text-white transition hover:bg-blue-800"
-                  >
-                    Send Invitations
-                  </button>
+              <Button
+                type="button"
+                onClick={handleGoToPeopleTab}
+                className="bg-blue-900 hover:bg-blue-800"
+              >
+                Open People tab
+              </Button>
+            </DialogFooter>
 
-                </div>
-
-
-                {invitedEmails.length > 0 && (
-
-                  <div className="mt-4">
-
-                    <p className="text-xs font-semibold text-blue-900">
-                      Invited Students
-                    </p>
-
-                    <div className="mt-2 flex flex-wrap gap-2">
-
-                      {invitedEmails.map(
-                        (email) => (
-
-                          <span
-                            key={email}
-                            className="rounded-full bg-white px-3 py-1.5 text-xs text-gray-700"
-                          >
-                            {email}
-                          </span>
-
-                        )
-                      )}
-
-                    </div>
-
-                  </div>
-
-                )}
-
-              </div>
-
-            </div>
-
-          </div>
-
-        )}
+          </DialogContent>
+        </Dialog>
 
 
         {/* Class List */}
@@ -700,8 +601,10 @@ function Classes() {
                   className="group relative overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
                 >
 
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={() =>
                       handleStartEdit(
                         classItem
@@ -709,19 +612,10 @@ function Classes() {
                     }
                     title="Edit class"
                     aria-label="Edit class"
-                    className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-500 opacity-0 shadow-sm transition hover:bg-white hover:text-blue-900 group-hover:opacity-100"
+                    className="absolute right-3 top-3 z-10 bg-white/90 text-gray-400 shadow-sm hover:bg-white hover:text-blue-900"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-4 w-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                    >
-                      <path d="M12 20h9" />
-                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                    </svg>
-                  </button>
+                    <PencilIcon className="h-4 w-4" />
+                  </Button>
 
                   <button
                     type="button"
@@ -743,7 +637,7 @@ function Classes() {
 
                     <div className="p-6">
 
-                      <h2 className="text-lg font-bold text-blue-950">
+                      <h2 className="truncate pr-9 text-lg font-bold text-blue-950">
                         {classItem.className}
                       </h2>
 

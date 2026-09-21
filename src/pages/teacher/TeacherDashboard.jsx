@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { BookOpenIcon, ChevronRightIcon } from "lucide-react"
 
 import TeacherLayout from "@/components/TeacherLayout"
 
@@ -6,9 +8,13 @@ import { getCurrentAccount } from "@/lib/accountStorage"
 import { getClassesForTeacher } from "@/lib/classStorage"
 import { copyToClipboard } from "@/lib/clipboard"
 import { useToast } from "@/components/ui/toast"
+import { Button } from "@/components/ui/button"
+import { DEFAULT_CLASS_COLOR } from "@/lib/classColors"
 
+const VISIBLE_CLASS_COUNT = 6
 
 function TeacherDashboard() {
+  const navigate = useNavigate()
   const toast = useToast()
 
   const [teacher, setTeacher] = useState(null)
@@ -143,28 +149,47 @@ function TeacherDashboard() {
 
         <div className="mt-7 overflow-hidden rounded-xl border bg-white shadow-sm">
 
-          <div className="border-b bg-gray-50 px-6 py-4">
+          <div className="flex items-center justify-between gap-3 border-b bg-gray-50 px-6 py-4">
 
-            <h2 className="text-sm font-semibold text-gray-950">
-              My Classes
-            </h2>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-950">
+                My Classes
+              </h2>
 
-            <p className="mt-0.5 text-xs text-gray-500">
-              Your recently created classes.
-            </p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Your recently created classes.
+              </p>
+            </div>
+
+            {classes.length > 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/teacher/classes")}
+                className="shrink-0 text-blue-900 hover:bg-blue-100/60 hover:text-blue-900"
+              >
+                View all
+                <ChevronRightIcon className="h-4 w-4" />
+              </Button>
+            )}
 
           </div>
 
 
           {classes.length === 0 ? (
 
-            <div className="px-6 py-12 text-center">
+            <div className="flex flex-col items-center px-6 py-14 text-center">
 
-              <p className="text-sm font-medium text-gray-700">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                <BookOpenIcon className="h-7 w-7" />
+              </div>
+
+              <p className="mt-4 text-sm font-semibold text-gray-800">
                 No classes yet
               </p>
 
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-sm text-gray-400">
                 Create your first class from My Classes.
               </p>
 
@@ -172,45 +197,77 @@ function TeacherDashboard() {
 
           ) : (
 
-            <div className="divide-y">
+            <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 xl:grid-cols-3">
 
-              {classes.map((classItem) => (
+              {classes.slice(0, VISIBLE_CLASS_COUNT).map((classItem) => (
 
-                <div
+                <button
                   key={classItem.id}
-                  className="flex items-center justify-between px-6 py-5"
+                  type="button"
+                  onClick={() => navigate(`/teacher/classes/${classItem.id}`)}
+                  className="group flex items-start gap-3 rounded-lg border border-gray-100 bg-gray-50/60 p-4 text-left transition hover:border-blue-200 hover:bg-blue-50/60"
                 >
 
-                  <div>
+                  <span
+                    className="mt-0.5 h-9 w-1 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: classItem.color || DEFAULT_CLASS_COLOR,
+                    }}
+                  />
 
-                    <h3 className="text-sm font-semibold text-gray-900">
+                  <div className="min-w-0 flex-1">
+
+                    <h3 className="truncate text-sm font-semibold text-gray-900">
                       {classItem.className}
                     </h3>
 
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-0.5 truncate text-xs text-gray-500">
                       {classItem.subject} • {classItem.section}
                     </p>
 
+                    <div className="mt-3 flex items-end justify-between gap-2">
+
+                      <div>
+                        <p className="text-[11px] text-gray-400">
+                          Students
+                        </p>
+
+                        <p className="mt-0.5 text-xs font-semibold text-gray-700">
+                          {classItem.studentCount}
+                        </p>
+                      </div>
+
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Tap to copy"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleCopyCode(classItem.classCode)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleCopyCode(classItem.classCode)
+                          }
+                        }}
+                        className="-m-1 rounded-md p-1 text-right transition hover:bg-blue-100/60"
+                      >
+                        <p className="text-[11px] text-gray-400">
+                          Class Code
+                        </p>
+
+                        <p className="mt-0.5 text-xs font-bold tracking-wider text-blue-900">
+                          {classItem.classCode}
+                        </p>
+                      </span>
+
+                    </div>
+
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleCopyCode(classItem.classCode)}
-                    title="Tap to copy"
-                    className="rounded-md px-2 py-1 text-right transition hover:bg-blue-50"
-                  >
-
-                    <p className="text-xs font-medium text-gray-500">
-                      Class Code
-                    </p>
-
-                    <p className="mt-1 text-sm font-bold tracking-wider text-blue-900">
-                      {classItem.classCode}
-                    </p>
-
-                  </button>
-
-                </div>
+                </button>
 
               ))}
 
