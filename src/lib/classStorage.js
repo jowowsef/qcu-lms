@@ -76,6 +76,8 @@ export function saveClass(classData) {
 
     studentCount: 0,
 
+    gradesPublished: false,
+
     ...classData,
   }
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { EyeOffIcon } from "lucide-react"
 
 import StudentLayout from "@/components/StudentLayout"
 
@@ -42,6 +43,18 @@ function Grades() {
     setHasClasses(classes.length > 0)
 
     const computed = classes.map((classItem) => {
+      const published = Boolean(classItem.gradesPublished)
+
+      if (!published) {
+        return {
+          classItem,
+          published,
+          classStanding: null,
+          examination: null,
+          courseGrade: null,
+        }
+      }
+
       const classworkItems = getClassworkForClass(classItem.id).filter(
         (item) => item.type !== "Material"
       )
@@ -53,6 +66,7 @@ function Grades() {
 
       return {
         classItem,
+        published,
         ...getCourseGrade(account.id, columns, grades, weights),
       }
     })
@@ -76,7 +90,7 @@ function Grades() {
             </h1>
 
             <p className="mt-1 text-sm text-gray-500">
-              Your course grade in each class, updated as work is graded.
+              Your course grade in each class, once your teacher publishes it.
             </p>
           </div>
         </div>
@@ -132,23 +146,30 @@ function Grades() {
                     </TableCell>
 
                     <TableCell className="text-blue-900">
-                      {formatPercent(row.classStanding)}
+                      {row.published ? formatPercent(row.classStanding) : "—"}
                     </TableCell>
 
                     <TableCell className="text-red-800">
-                      {formatPercent(row.examination)}
+                      {row.published ? formatPercent(row.examination) : "—"}
                     </TableCell>
 
                     <TableCell className="text-right">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-sm font-bold ${
-                          row.courseGrade === null
-                            ? "text-gray-400"
-                            : "bg-blue-50 text-blue-900"
-                        }`}
-                      >
-                        {formatPercent(row.courseGrade)}
-                      </span>
+                      {row.published ? (
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-sm font-bold ${
+                            row.courseGrade === null
+                              ? "text-gray-400"
+                              : "bg-blue-50 text-blue-900"
+                          }`}
+                        >
+                          {formatPercent(row.courseGrade)}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400">
+                          <EyeOffIcon className="h-3.5 w-3.5" />
+                          Not yet published
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

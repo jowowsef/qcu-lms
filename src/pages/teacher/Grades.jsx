@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react"
+import { UploadIcon } from "lucide-react"
 
 import TeacherLayout from "@/components/TeacherLayout"
 import ClassworkPanel from "@/components/classwork/ClassworkPanel"
 import GradeSheet from "@/pages/teacher/grades/GradeSheet"
 import GradingScheme from "@/pages/teacher/grades/GradingScheme"
 
+import { Button } from "@/components/ui/button"
+
 import { getCurrentAccount } from "@/lib/accountStorage"
-import { getClassesForTeacher } from "@/lib/classStorage"
+import { getClassesForTeacher, updateClass } from "@/lib/classStorage"
 import { getClassworkForClass } from "@/lib/classWorkStorage"
 
 import {
@@ -179,8 +182,52 @@ function Grades() {
     toast.success("Grading scheme saved!")
   }
 
+  function applyPublishState(nextValue) {
+    updateClass(selectedClassId, { gradesPublished: nextValue })
+
+    setClasses((current) =>
+      current.map((classItem) =>
+        classItem.id === selectedClassId
+          ? { ...classItem, gradesPublished: nextValue }
+          : classItem
+      )
+    )
+  }
+
+  async function handlePublish() {
+    const confirmed = await confirm({
+      title: "Publish grades to students?",
+      description: `Everyone in ${selectedClass?.className} will be able to see their Class Standing, Examination, and Course Grade right away.`,
+      confirmLabel: "Publish",
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    applyPublishState(true)
+    toast.success("Grades published. Students can now see them.")
+  }
+
+  async function handleUnpublish() {
+    const confirmed = await confirm({
+      title: "Unpublish these grades?",
+      description: "Students won't be able to see their grades for this class until you publish again.",
+      confirmLabel: "Unpublish",
+      destructive: true,
+    })
+
+    if (!confirmed) {
+      return
+    }
+
+    applyPublishState(false)
+    toast.success("Grades are hidden from students again.")
+  }
+
   const selectedClass = classes.find((c) => c.id === selectedClassId)
   const students = selectedClass?.students || []
+  const gradesPublished = Boolean(selectedClass?.gradesPublished)
 
   const columns = useMemo(
     () => buildGradeColumns(classworkItems, manualItems),
@@ -373,6 +420,35 @@ function Grades() {
                 >
                   + Add manual item
                 </button>
+
+                {gradesPublished ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleUnpublish}
+                    className="whitespace-nowrap"
+                  >
+                    Unpublish grades
+                  </Button>
+                ) : (
+                  <span
+                    title={
+                      students.length === 0
+                        ? "Add students to this class before publishing grades."
+                        : undefined
+                    }
+                  >
+                    <Button
+                      type="button"
+                      onClick={handlePublish}
+                      disabled={students.length === 0}
+                      className="whitespace-nowrap bg-blue-900 hover:bg-blue-800"
+                    >
+                      <UploadIcon className="h-4 w-4" />
+                      Publish grades
+                    </Button>
+                  </span>
+                )}
 
                 <button
                   type="button"

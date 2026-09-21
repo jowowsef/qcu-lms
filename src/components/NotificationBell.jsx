@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { CheckIcon, CircleAlertIcon, MessageCircleIcon } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -14,6 +15,12 @@ const TYPE_ICON_STYLES = {
   grade: "bg-emerald-50 text-emerald-700",
   comment: "bg-blue-50 text-blue-700",
   "due-soon": "bg-amber-50 text-amber-700",
+}
+
+const TYPE_ICONS = {
+  grade: CheckIcon,
+  comment: MessageCircleIcon,
+  "due-soon": CircleAlertIcon,
 }
 
 function formatRelativeTime(isoString) {
@@ -115,7 +122,10 @@ function NotificationBell({ student }) {
               You're all caught up.
             </p>
           ) : (
-            notifications.slice(0, 20).map((notification) => (
+            notifications.slice(0, 20).map((notification) => {
+              const NotificationIcon = TYPE_ICONS[notification.type] || CircleAlertIcon
+
+              return (
               <button
                 key={notification.id}
                 type="button"
@@ -123,15 +133,11 @@ function NotificationBell({ student }) {
                 className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-gray-50"
               >
                 <span
-                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
                     TYPE_ICON_STYLES[notification.type] || "bg-gray-100 text-gray-600"
                   }`}
                 >
-                  {notification.type === "grade"
-                    ? "G"
-                    : notification.type === "comment"
-                    ? "C"
-                    : "!"}
+                  <NotificationIcon className="h-4 w-4" />
                 </span>
 
                 <div className="min-w-0 flex-1">
@@ -148,7 +154,8 @@ function NotificationBell({ student }) {
                   </p>
                 </div>
               </button>
-            ))
+              )
+            })
           )}
         </div>
       </DropdownMenuContent>
